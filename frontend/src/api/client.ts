@@ -8,7 +8,7 @@ import type {
 } from "../types";
 
 export const apiClient = axios.create({
-  baseURL: "http://localhost:8001",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8001",
 });
 
 apiClient.interceptors.response.use(

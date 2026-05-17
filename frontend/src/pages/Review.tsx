@@ -114,7 +114,8 @@ function buildUpdatePayload(form: FormState): OperationalRecordUpdate {
 }
 
 function fileUrl(document: Document) {
-  return `http://localhost:8000/uploads/${encodeURIComponent(document.filename)}`;
+  const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  return `${baseUrl}/uploads/${encodeURIComponent(document.filename)}`;
 }
 
 function Review() {
