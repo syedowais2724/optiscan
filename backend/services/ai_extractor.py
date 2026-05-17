@@ -148,6 +148,7 @@ def _extract_document_sync(file_path: str, file_type: str) -> dict[str, Any]:
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
         raise RuntimeError("OPENROUTER_API_KEY is not configured")
+    api_key = api_key.strip()
 
     normalized_file_type = file_type.lower()
     encoded_file = _encode_file(file_path)
