@@ -1,0 +1,10 @@
+backend/.env
+backend/optiscan.db
+backend/uploads/
+frontend/dist/
+frontend/node_modules/
+
+__pycache__/
+backend/.venv/
+.venv/
+venv/
