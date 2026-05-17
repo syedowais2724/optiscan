@@ -142,23 +142,16 @@ def _parse_json_response(raw_response: str) -> dict[str, Any]:
     return parsed
 
 
+import requests
+
 def _extract_document_sync(file_path: str, file_type: str) -> dict[str, Any]:
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
         raise RuntimeError("OPENROUTER_API_KEY is not configured")
 
-    # Create OpenAI client pointing to OpenRouter
-    client = OpenAI(
-        api_key=api_key,
-        base_url="https://openrouter.ai/api/v1"
-    )
-    
     normalized_file_type = file_type.lower()
-    
-    # Encode the file
     encoded_file = _encode_file(file_path)
     
-    # Determine the data URL format
     if normalized_file_type == "image":
         media_type = _get_image_media_type(file_path)
         image_url = f"data:{media_type};base64,{encoded_file}"
@@ -167,7 +160,6 @@ def _extract_document_sync(file_path: str, file_type: str) -> dict[str, Any]:
     else:
         raise ValueError(f"Unsupported file_type: {file_type}")
     
-    # Create the message with vision
     messages = [
         {
             "role": "user",
@@ -186,17 +178,33 @@ def _extract_document_sync(file_path: str, file_type: str) -> dict[str, Any]:
         }
     ]
     
-    # Call the API
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=messages,
-        max_tokens=2048,
-        temperature=0,
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://optiscan-frontend.onrender.com",
+        "X-Title": "OptiScan"
+    }
+    
+    payload = {
+        "model": MODEL_NAME,
+        "messages": messages,
+        "max_tokens": 2048,
+        "temperature": 0
+    }
+    
+    response = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers=headers,
+        json=payload,
+        timeout=60
     )
     
-    raw_response = response.choices[0].message.content.strip()
+    if not response.ok:
+        raise RuntimeError(f"OpenRouter API error: {response.status_code} - {response.text}")
+        
+    response_data = response.json()
+    raw_response = response_data["choices"][0]["message"]["content"].strip()
     return _parse_json_response(raw_response)
-
 
 async def extract_document(file_path: str, file_type: str) -> dict:
     return await asyncio.to_thread(_extract_document_sync, file_path, file_type)
