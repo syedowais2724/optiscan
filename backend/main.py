@@ -25,4 +25,8 @@ app.add_middleware(
 app.include_router(documents.router)
 app.include_router(records.router)
 app.include_router(analytics.router)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+uploads_dir = os.path.join(BASE_DIR, "uploads")
+os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
